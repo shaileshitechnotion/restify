@@ -1,5 +1,7 @@
 var con=require('../config');
 var sanitizer = require('../node_modules/sanitizer');
+var BunyanLogger = require('../node_modules/restify-bunyan-logger');
+var Logger = require('../node_modules/bunyan');
 
 var _connection = con.get;
 
@@ -12,14 +14,31 @@ _connection.connect()
 /* -Function to get all the details from table.
    -Function type GET
 */
+//var log = Logger.createLogger({name: 'myapp'});
+
+var log = Logger.createLogger({
+  name: 'myapp',
+  streams: [
+    {
+      level: 'info',
+      path: 'F:/Projects/Node/restify/myapp-error.log'           // log INFO and above to stdout
+    },
+    {
+      level: 'error',
+      path: 'F:/Projects/Node/restify/myapp-error.log'  // log ERROR and above to a file
+    }
+  ]
+});
 
 exports.get_users=function(req, res, next) 
 {
+    
    var response = [];
   _connection.query("SELECT * FROM tbl_users", function (err, result, fields) 
    {
     if (err)
     {
+       //log.error(err); 
       status=0;
       message=err;
       results='';
@@ -32,10 +51,14 @@ exports.get_users=function(req, res, next)
     {
       if(result!='')
       {
+        
+        
+        //log.info("Record available for request url "); 
         status=1;
         message='Records are available.';
         results=result;
         response.push({status: status, message: message,result:results});
+        log.error(results); 
         res.send(response);
         next();
 
@@ -43,6 +66,7 @@ exports.get_users=function(req, res, next)
       }
       else
       {
+       
         status=0;
         message='Records are not available.';
         results='';
@@ -109,10 +133,7 @@ exports.get_user_details= function (req, res, next)
         "wibmo_acc_no": "IN6288351641692",
         "name": "sandesh shreyas",
         "email": "abc@gmail.com",
-        "mobile_no": "7353535760",
-        "created": "2017-05-11T00:15:15.000Z",
-        "updated": "2017-05-11T00:24:45.000Z",
-        "user_location_preference": "tiruchirappalli"
+        "mobile_no": "7353535760"
       }
 */
 
