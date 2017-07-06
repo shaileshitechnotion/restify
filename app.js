@@ -16,6 +16,20 @@ var server = restify.createServer();
 
 server.use(bodyParser.json())
 
+/* code for perform basic authentication */
+server.use(function authenticate(req, res, next) 
+{
+  var auth = req.headers['authorization'];
+  if(auth=='Basic c2hhaWxlc2g6dGVzdA==')
+  {
+    return next();
+  }
+  else
+  {
+    res.json({ message: 'Basic authorization fail.' });
+  }
+});
+
 /* function for usercontroller */
 server.get('/get_users', controllers.user_controller.get_users);
 

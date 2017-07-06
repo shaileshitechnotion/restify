@@ -1,4 +1,5 @@
 var con=require('../config');
+var sanitizer = require('../node_modules/sanitizer');
 
 var _connection = con.get;
 
@@ -62,7 +63,7 @@ exports.get_users=function(req, res, next)
 exports.get_user_details= function (req, res, next) 
 {
     var response = [];
-    var id=req.params.id  //Parameter get by url
+    var id=sanitizer.sanitize(req.params.id);  //Parameter get by url
 
   _connection.query("SELECT * FROM tbl_users where id=?",[id], function (err, result, fields) 
    {
@@ -118,9 +119,14 @@ exports.get_user_details= function (req, res, next)
 exports.add_user=function (req, res, next) 
 {
     var response = [];
-    var post  = {program_id: req.body.program_id, wibmo_acc_no: req.body.wibmo_acc_no,name:req.body.name,email:req.body.email,mobile_no:req.body.mobile_no,created:new Date()};
+    var program_id=sanitizer.sanitize(req.body.program_id);
+    var wibmo_acc_no=sanitizer.sanitize(req.body.wibmo_acc_no);
+    var name=sanitizer.sanitize(req.body.name);
+    var email=sanitizer.sanitize(req.body.email);
+    var mobile_no=sanitizer.sanitize(req.body.mobile_no);
+    var post  = {program_id:program_id , wibmo_acc_no: wibmo_acc_no,name:name,email:email,mobile_no:mobile_no,created:new Date()};
 
-  _connection.query("INSERT INTO tbl_users SET ?",post, function (err, result, fields) 
+  _connection.query("INSERT INTO tbl_users SET ?",[post], function (err, result, fields) 
    {
     if (err)
     {
@@ -171,9 +177,9 @@ exports.add_user=function (req, res, next)
 exports.update_user= function (req, res, next)
 {
   var response = [];
-  var program_id=req.body.program_id;
-  var name=req.body.name;
-  var id=req.body.id;
+  var program_id=sanitizer.sanitize(req.body.program_id);
+  var name=sanitizer.sanitize(req.body.name);
+  var id=sanitizer.sanitize(req.body.id);
 
   _connection.query("UPDATE tbl_users SET program_id = ?,name=? WHERE id = ?",[program_id,name,id], function (err, result, fields) 
    {
@@ -217,8 +223,8 @@ exports.update_user= function (req, res, next)
 exports.delete_user= function (req, res, next)
 {
   var response = [];
-  var id=req.params.id
-  _connection.query("DELETE FROM tbl_users  WHERE id = ?",id, function (err, result, fields) 
+  var id=sanitizer.sanitize(req.params.id);
+  _connection.query("DELETE FROM tbl_users  WHERE id = ?",[id], function (err, result, fields) 
    {
     if (err)
     {
