@@ -15,6 +15,7 @@ fs.readdirSync(controllers_path).forEach(function (file) {
 var server = restify.createServer();
 
 server.use(bodyParser.json())
+server.use(bodyParser.urlencoded({ extended: false }))
 
 /* code for perform basic authentication */
 server.use(function authenticate(req, res, next) 
@@ -36,6 +37,8 @@ server.get('/get_users', controllers.user_controller.get_users);
 server.get('/get_user_details/:id', controllers.user_controller.get_user_details);
 
 server.post('/add_user', controllers.user_controller.add_user);
+
+server.post('/upload_file', controllers.user_controller.upload_file);
 
 server.post('/update_user', controllers.user_controller.update_user);
 

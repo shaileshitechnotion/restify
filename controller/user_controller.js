@@ -1,7 +1,7 @@
 var con=require('../config');
+var log=require('../logger');
 var sanitizer = require('../node_modules/sanitizer');
-var BunyanLogger = require('../node_modules/restify-bunyan-logger');
-var Logger = require('../node_modules/bunyan');
+var fs = require('fs');
 
 var _connection = con.get;
 
@@ -14,21 +14,6 @@ _connection.connect()
 /* -Function to get all the details from table.
    -Function type GET
 */
-//var log = Logger.createLogger({name: 'myapp'});
-
-var log = Logger.createLogger({
-  name: 'myapp',
-  streams: [
-    {
-      level: 'info',
-      path: 'F:/Projects/Node/restify/myapp-error.log'           // log INFO and above to stdout
-    },
-    {
-      level: 'error',
-      path: 'F:/Projects/Node/restify/myapp-error.log'  // log ERROR and above to a file
-    }
-  ]
-});
 
 exports.get_users=function(req, res, next) 
 {
@@ -38,7 +23,7 @@ exports.get_users=function(req, res, next)
    {
     if (err)
     {
-       //log.error(err); 
+      log.error('get_users | Error : ' +err); 
       status=0;
       message=err;
       results='';
@@ -52,13 +37,11 @@ exports.get_users=function(req, res, next)
       if(result!='')
       {
         
-        
-        //log.info("Record available for request url "); 
+        log.info('get_users | Record available for request url '); 
         status=1;
         message='Records are available.';
         results=result;
         response.push({status: status, message: message,result:results});
-        log.error(results); 
         res.send(response);
         next();
 
@@ -66,7 +49,7 @@ exports.get_users=function(req, res, next)
       }
       else
       {
-       
+        log.info('get_users | Record are not available for request url '); 
         status=0;
         message='Records are not available.';
         results='';
@@ -93,6 +76,7 @@ exports.get_user_details= function (req, res, next)
    {
     if (err)
     {
+      log.error('get_user_details | Error : '+ err +' | Requested Parameter : ' +id); 
       status=0;
       message=err;
       results='';
@@ -104,6 +88,7 @@ exports.get_user_details= function (req, res, next)
     {
       if(result!='')
       {
+        log.info('get_user_details | Record are available for request Param : '+id);
         status=1;
         message='Records are available.';
         results=result;
@@ -113,6 +98,7 @@ exports.get_user_details= function (req, res, next)
       }
       else
       {
+        log.info('get_user_details | Record are not available for request Param : '+id);
         status=0;
         message='Records are not available.';
         results='';
@@ -135,10 +121,12 @@ exports.get_user_details= function (req, res, next)
         "email": "abc@gmail.com",
         "mobile_no": "7353535760"
       }
+  -Also Accept URL Encode params
 */
 
 exports.add_user=function (req, res, next) 
 {
+   console.log(req.body)
     var response = [];
     var program_id=sanitizer.sanitize(req.body.program_id);
     var wibmo_acc_no=sanitizer.sanitize(req.body.wibmo_acc_no);
@@ -151,6 +139,7 @@ exports.add_user=function (req, res, next)
    {
     if (err)
     {
+      log.error('add_user | Error : '+ err ); 
       status=0;
       message=err;
       results='';
@@ -162,6 +151,7 @@ exports.add_user=function (req, res, next)
     {
       if(result.affectedRows>0)
       {
+        log.info('add_user | Records are sucessfully inserted : '+JSON.stringify(post));
         status=1;
         message='Records are sucessfully inserted.';
         results=result;
@@ -171,6 +161,7 @@ exports.add_user=function (req, res, next)
       }
       else
       {
+        log.info('add_user | Something went wrong while adding data : '+JSON.stringify(post));
         status=0;
         message='Something went wrong while adding data.';
         results='';
@@ -183,6 +174,7 @@ exports.add_user=function (req, res, next)
   })
   
 }
+
 
 /* -Function for update record in database by primary or other
    -Function Type POST
@@ -206,6 +198,7 @@ exports.update_user= function (req, res, next)
    {
     if (err)
     {
+      log.error('update_user | Error : '+ err ); 
       status=0;
       message=err;
       results='';
@@ -217,6 +210,7 @@ exports.update_user= function (req, res, next)
     {
       if(result.affectedRows>0)
       {
+        log.info('update_user | Records are sucessfully updated for Id = '+id);
         status=1;
         message='Records are sucessfully updated.';
         results=result;
@@ -226,6 +220,7 @@ exports.update_user= function (req, res, next)
       }
       else
       {
+        log.info('update_user | Something went wrong while udating data for Id = '+id);
         status=0;
         message='Something went wrong while udating data.';
         results='';
@@ -249,6 +244,7 @@ exports.delete_user= function (req, res, next)
    {
     if (err)
     {
+      log.error('delete_user | Error : '+ err );
       status=0;
       message=err;
       results='';
@@ -260,6 +256,7 @@ exports.delete_user= function (req, res, next)
     {
       if(result.affectedRows>0)
       {
+        log.info('delete_user | Records are sucessfully deleted for Id = '+id);
         status=1;
         message='Record sucessfully deleted.';
         results=result;
@@ -269,7 +266,8 @@ exports.delete_user= function (req, res, next)
       }
       else
       {
-         status=0;
+        log.info('delete_user | Something went wrong while removing data for Id = '+id);
+        status=0;
         message='Something went wrong while removing data.';
         results='';
         response.push({status: status, message: message,result:results});
@@ -278,5 +276,66 @@ exports.delete_user= function (req, res, next)
       }  
    }
   })
+  
+}
+
+
+
+
+exports.upload_file=function (req, res, next) 
+{
+   var image=req.body.image;
+   var decoded = new Buffer(image, 'base64');
+
+   fs.writeFile("./Public/img/test.jpg", decoded, function(err) { });
+
+  /* var b = new Buffer(image, 'base64')
+   var s = b.toString();*/
+   //console.log(decoded);
+  /*  var response = [];
+    var program_id=sanitizer.sanitize(req.body.program_id);
+    var wibmo_acc_no=sanitizer.sanitize(req.body.wibmo_acc_no);
+    var name=sanitizer.sanitize(req.body.name);
+    var email=sanitizer.sanitize(req.body.email);
+    var mobile_no=sanitizer.sanitize(req.body.mobile_no);
+    var post  = {program_id:program_id , wibmo_acc_no: wibmo_acc_no,name:name,email:email,mobile_no:mobile_no,created:new Date()};
+
+  _connection.query("INSERT INTO tbl_users SET ?",[post], function (err, result, fields) 
+   {
+    if (err)
+    {
+      log.error('add_user | Error : '+ err ); 
+      status=0;
+      message=err;
+      results='';
+      response.push({status: status, message: message,result:results});
+      res.send(response);
+      next();
+    } 
+    else
+    {
+      if(result.affectedRows>0)
+      {
+        log.info('add_user | Records are sucessfully inserted : '+JSON.stringify(post));
+        status=1;
+        message='Records are sucessfully inserted.';
+        results=result;
+        response.push({status: status, message: message,result:results});
+        res.send(response);
+        next();
+      }
+      else
+      {
+        log.info('add_user | Something went wrong while adding data : '+JSON.stringify(post));
+        status=0;
+        message='Something went wrong while adding data.';
+        results='';
+        response.push({status: status, message: message,result:results});
+        res.send(response);
+        next();
+      }
+      
+   }
+  })*/
   
 }
